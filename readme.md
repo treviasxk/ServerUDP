@@ -5,7 +5,7 @@ ServerUDP é um servidor criado em .NET Core com C#, é um projeto simples e de 
  ![Preview](screenshots/ClientUDP.jpg)
 
 ### Como utilizar
-Baixe os dois projetos ([ServerUDP](github.com/treviasxk/ServerUDP) e [ClientUDP](github.com/treviasxk/ClientUDP)) e apenas compile que já funcionará como demonstração, entre a comunicação do Server para o Client.
+Baixe os dois projetos ([ServerUDP](https://github.com/treviasxk/ServerUDP) e [ClientUDP](https://github.com/treviasxk/ClientUDP)) e apenas compile que já funcionará como demonstração, entre a comunicação do Server para o Client.
 
 ### Documentação
 
