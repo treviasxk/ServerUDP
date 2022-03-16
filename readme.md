@@ -18,7 +18,7 @@ Baixe os dois projetos ([ServerUDP](https://github.com/treviasxk/ServerUDP) e [C
 
 | Variáveis | Descrição|
 |------|-----|
-| Classes | datagram é uma class que contém variáveis que você deseja enviar. O ServerUDP e ClientUDP tem que ter os mesmo valores da class para o envio funcionar perfeitamente.|
+| Classes | dtg é uma class que contém variáveis que você deseja enviar. O ServerUDP e ClientUDP tem que ter os mesmo valores da class para o envio funcionar perfeitamente.|
 
 | Eventos | Descrição|
 |------|-----|
