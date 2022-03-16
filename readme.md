@@ -11,10 +11,10 @@ Baixe os dois projetos ([ServerUDP](github.com/treviasxk/ServerUDP) e [ClientUDP
 
 | Ações | Descrição |
 |-----------|---------------|
-| StartServer(String, Int) | (ServerUDP) Insira um IP e uma Porta para iniciar o servidor.|
-| ConnectServer(String, Int) | (ClientUDP) Insira um IP e uma Porta para iniciar o servidor.|
-| SendData(datagram, IPEndPoint) | (ServerUDP) Depois de formar o datagram você pode enviar os dados para um client com o IPEndPoint dele.|
-| SendData(datagram) | (ClientUDP) Depois de formar o datagram os dados serão enviado para o servidor conectado.|
+| StartServer(String, Int, Class) | (ServerUDP) Insira um IP, Porta e uma class, para poder iniciar o servidor.|
+| ConnectServer(String, Int, Class) | (ClientUDP) Insira um IP, Porta e uma class, para conectar com o servidor.|
+| SendData(object, IPEndPoint) | (ServerUDP) Depois de formar o datagram você pode enviar os dados para um client com o IPEndPoint dele.|
+| SendData(object) | (ClientUDP) Depois de formar o datagram os dados serão enviado para o servidor conectado.|
 
 | Variáveis | Descrição|
 |------|-----|
