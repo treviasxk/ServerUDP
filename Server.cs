@@ -5,57 +5,60 @@ using System.Xml;
 using System.Xml.Serialization;
 
 namespace NetworkUDP {
+   public partial class Eventos: EventArgs{
+      public delegate void OnReceivedNewDataClient(object _data, IPEndPoint _client);
+   }
 
-public partial class Eventos: EventArgs{
-   public delegate void OnReceivedNewDataClient(object _data, IPEndPoint _client);
-}
+   public class ServerUDP {
+      static object datagram = new object();
 
-public class ServerUDP {
-   static object datagram = new object();
-
-   public static event Eventos.OnReceivedNewDataClient? OnReceivedNewDataClient;
-   static UdpClient Server = new UdpClient();
-   public static bool StartServer(string IP, int PORT, object _data){
-      try{
-         datagram = _data;
-         IPEndPoint Host = new IPEndPoint(IPAddress.Parse(IP), PORT);
-         Server = new UdpClient(Host);
-         Server.BeginReceive(new AsyncCallback(ServerReceiveUDPCallback), null);
-         return true;
+      public static event Eventos.OnReceivedNewDataClient? OnReceivedNewDataClient;
+      static UdpClient Server = new UdpClient();
+      public static bool StartServer(string IP, int PORT, object _data){
+         try{
+            datagram = _data;
+            IPEndPoint Host = new IPEndPoint(IPAddress.Parse(IP), PORT);
+            Server = new UdpClient(Host);
+            Server.BeginReceive(new AsyncCallback(ServerReceiveUDPCallback), null);
+            return true;
+         }
+         catch{
+            return false;
+         }
       }
-      catch{
-         return false;
+      static void ServerReceiveUDPCallback(IAsyncResult _result){
+         IPEndPoint? _client = new IPEndPoint(IPAddress.Any, 0);
+         object _data = XmlToDatagram(Encoding.UTF8.GetString(Server.EndReceive(_result, ref _client)));
+         if(_data != null && _client != null){
+            OnReceivedNewDataClient?.Invoke(_data, _client);
+         }
+         try{
+            Server.BeginReceive(new AsyncCallback(ServerReceiveUDPCallback), null);
+         }catch{
+            Server.BeginReceive(new AsyncCallback(ServerReceiveUDPCallback), null);
+         }
       }
-   }
-   static void ServerReceiveUDPCallback(IAsyncResult _result){
-      IPEndPoint? _client = new IPEndPoint(IPAddress.Any, 0);
-      object _data = XmlToDatagram(Encoding.UTF8.GetString(Server.EndReceive(_result, ref _client)));
-      if(_data != null && _client != null){
-         OnReceivedNewDataClient?.Invoke(_data, _client);
+      public static void SendData(object _data, IPEndPoint _client){
+         byte[] buffer = Encoding.UTF8.GetBytes(DatagramToXml(_data));
+         Server.Send(buffer, buffer.Length, _client);
       }
-      Server.BeginReceive(new AsyncCallback(ServerReceiveUDPCallback), null);
-   }
-   public static void SendData(object _data, IPEndPoint _client){
-      byte[] buffer = Encoding.UTF8.GetBytes(DatagramToXml(_data));
-      Server.Send(buffer, buffer.Length, _client);
-   }
 
-   static object XmlToDatagram(string _xml){
-      XmlSerializer x = new XmlSerializer(datagram.GetType());
-      object _data = x.Deserialize(new StringReader(_xml));
-      if(_data != null){
-         return _data;
-      }else{
-         return new object();
+      static object XmlToDatagram(string _xml){
+         XmlSerializer x = new XmlSerializer(datagram.GetType());
+         object _data = x.Deserialize(new StringReader(_xml));
+         if(_data != null){
+            return _data;
+         }else{
+            return new object();
+         }
+      }
+
+      static string DatagramToXml(object _data){
+         XmlSerializer x = new XmlSerializer(datagram.GetType());
+         StringWriter _xml = new StringWriter();
+         var textWriter = XmlWriter.Create(_xml);
+         x.Serialize(textWriter, _data);
+         return _xml.ToString();
       }
    }
-
-   static string DatagramToXml(object _data){
-      XmlSerializer x = new XmlSerializer(datagram.GetType());
-      StringWriter _xml = new StringWriter();
-      var textWriter = XmlWriter.Create(_xml);
-      x.Serialize(textWriter, _data);
-      return _xml.ToString();
-   }
-}
 }
