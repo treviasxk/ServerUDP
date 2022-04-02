@@ -4,29 +4,34 @@
 
 using NetworkUDP;
 using System.Net;
-using static NetworkUDP.Eventos;
 
-public class dtg {
-    public string? name { get; set; }
-    public string? msg { get; set; }
+ class dtg {
+    public string name { get; set; }
+    public string msg { get; set; }
 }
 
 class Program {
    static void Main(string[] args){
       if(ServerUDP.StartServer(IPAddress.Any.ToString(), 26950, new dtg())){
-         ServerUDP.OnReceivedNewDataClient += new OnReceivedNewDataClient(OnReceivedNewDataClient);
-         Console.WriteLine("Servidor iniciado e hospedado na porta: {0}", 26950);
+         Console.WriteLine("[SERVER] Servidor iniciado e hospedado na porta: {0}", 26950);
+         ServerUDP.OnReceivedNewDataClient += new Eventos.OnReceivedNewDataClient(OnReceivedNewDataClient);
+         ServerUDP.OnConnectedClient += new Eventos.OnConnectedClient(OnConnectedClient);
+         ServerUDP.OnDisconnectedClient += new Eventos.OnDisconnectedClient(OnDisconnectedClient);
       }
-      Console.ReadKey();
    }
-
    //========================= Evento =========================
    static void OnReceivedNewDataClient(object _data, IPEndPoint _client){
       var data = (dtg)_data;
-      Console.WriteLine("Datagram recebido de: {0}", _client.Port);
-      data.name = "SERVIDOR";
+      Console.WriteLine("{0}: {1}", data.name, data.msg);
+      data.name = "SERVER";
       data.msg = "Olá :)";
-      Console.WriteLine("Enviado mensagem de resposta!");
-      ServerUDP.SendData(_data, _client);
+      Console.WriteLine("{0}: {1}", data.name, data.msg);
+      ServerUDP.SendData(data, _client);
+   }
+   static void OnConnectedClient(IPEndPoint _client){
+      Console.WriteLine("[SERVER] {0}:{1} conectou no servidor.", _client.Address, _client.Port);
+   }
+   static void OnDisconnectedClient(IPEndPoint _client){
+      Console.WriteLine("[SERVER] {0}:{1} desconectou do servidor.", _client.Address, _client.Port);
    }
 }
