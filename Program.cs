@@ -20,7 +20,7 @@ class Program {
       }
    }
    //========================= Evento =========================
-   static void OnReceivedNewDataClient(object _data, IPEndPoint _client){
+   static void OnReceivedNewDataClient(object _data, Client _client){
       var data = (dtg)_data;
       Console.WriteLine("{0}: {1}", data.name, data.msg);
       data.name = "SERVER";
@@ -28,10 +28,10 @@ class Program {
       Console.WriteLine("{0}: {1}", data.name, data.msg);
       ServerUDP.SendData(data, _client);
    }
-   static void OnConnectedClient(IPEndPoint _client){
-      Console.WriteLine("[SERVER] {0}:{1} conectou no servidor.", _client.Address, _client.Port);
+   static void OnConnectedClient(Client _client){
+      Console.WriteLine("[SERVER] {0} conectou no servidor.", _client.IP);
    }
-   static void OnDisconnectedClient(IPEndPoint _client){
-      Console.WriteLine("[SERVER] {0}:{1} desconectou do servidor.", _client.Address, _client.Port);
+   static void OnDisconnectedClient(Client _client){
+      Console.WriteLine("[SERVER] {0} desconectou do servidor.", _client.IP);
    }
 }
