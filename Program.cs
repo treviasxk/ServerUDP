@@ -4,6 +4,7 @@
 
 using NetworkUDP;
 using System.Net;
+using System.Text.Json;
 
  class dtg {
     public string name { get; set; }
@@ -12,7 +13,7 @@ using System.Net;
 
 class Program {
    static void Main(string[] args){
-      if(ServerUDP.StartServer(IPAddress.Any.ToString(), 26950, new dtg())){
+      if(ServerUDP.StartServer(IPAddress.Any.ToString(), 26950)){
          Console.WriteLine("[SERVER] Servidor iniciado e hospedado na porta: {0}", 26950);
          ServerUDP.OnReceivedNewDataClient += new Eventos.OnReceivedNewDataClient(OnReceivedNewDataClient);
          ServerUDP.OnConnectedClient += new Eventos.OnConnectedClient(OnConnectedClient);
@@ -20,13 +21,13 @@ class Program {
       }
    }
    //========================= Evento =========================
-   static void OnReceivedNewDataClient(object _data, Client _client){
-      var data = (dtg)_data;
+   static void OnReceivedNewDataClient(string _text, Client _client){
+      var data = JsonSerializer.Deserialize<dtg>(_text);
       Console.WriteLine("{0}: {1}", data.name, data.msg);
       data.name = "SERVER";
       data.msg = "Olá :)";
       Console.WriteLine("{0}: {1}", data.name, data.msg);
-      ServerUDP.SendData(data, _client);
+      ServerUDP.SendData(JsonSerializer.Serialize(data), _client);
    }
    static void OnConnectedClient(Client _client){
       Console.WriteLine("[SERVER] {0} conectou no servidor.", _client.IP);

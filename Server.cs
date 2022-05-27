@@ -4,7 +4,7 @@
 
 using System.Net;
 using System.Net.Sockets;
-using System.Text.Json;
+using System.Text;
 using System.Security.Cryptography;
 
 namespace NetworkUDP {
@@ -12,7 +12,7 @@ namespace NetworkUDP {
       /// <summary>
       /// O evento é chamado quando um Datagrama é recebido de um Client e também será retornado um Datagram como object e o endereço do Client no parâmetro da função.
       /// </summary>
-      public delegate void OnReceivedNewDataClient(object _data, Client _client);
+      public delegate void OnReceivedNewDataClient(string _text, Client _client);
       /// <summary>
       /// O evento é chamado quando um Client se conecta no servidor e também é retornado o endereço do Client IPEndPoint.
       /// </summary>
@@ -29,16 +29,10 @@ namespace NetworkUDP {
       public long Time;
       public string PublicKeyXML = "";
    }
-   class Connection{
-      public bool EncryptConnection { get; set; }
-      public string PublicKeyXML { get; set; }
-      public byte[] Datagram { get; set; }
-   }
    public class ServerUDP {
       static UdpClient Server;
       static bool EncryptConnection;
       static string PrivateKeyXML, PublicKeyXML;
-      static Type DataType;
       /// <summary>
       /// O evento é chamado quando um Datagrama é recebido de um Client e também será retornado um Datagram como object e um IPEndPoint nos parâmetros da função.
       /// </summary>
@@ -58,10 +52,9 @@ namespace NetworkUDP {
       /// <summary>
       /// Inicie o servidor com um IP e Porta especifico e insire a class do Datagram.
       /// </summary>
-      public static bool StartServer(string IP, int PORT, object _type, bool _encrypt = true){
+      public static bool StartServer(string IP, int PORT, bool _encrypt = false){
          try{
             EncryptConnection = _encrypt;
-            DataType = _type.GetType();
             RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
             PrivateKeyXML = RSA.ToXmlString(true);
             PublicKeyXML = RSA.ToXmlString(false);
@@ -79,21 +72,18 @@ namespace NetworkUDP {
       /// <summary>
       /// Envie o Datagram para um ou vários Clients. 
       /// </summary>
-      public static bool SendData(object _data, Client _client){
+      public static bool SendData(string _text, Client _client){
          try{
-            Connection _connection = new Connection();
-            _connection.EncryptConnection = EncryptConnection;
-            byte[] buffer = DatagramJsonToByte(_connection, _data, EncryptConnection, _client.PublicKeyXML);
+            byte[] buffer = TextToByte(_text, EncryptConnection, _client.PublicKeyXML);
             Server.Send(buffer, buffer.Length, _client.IP);
             return true;
          }catch{
             return false;
          }
       }
-      public static bool SendDataAll(object _data){
+      public static bool SendDataAll(string _text){
          try{
-            Connection _connection = new Connection();
-            byte[] buffer = DatagramJsonToByte(_connection, _data);
+            byte[] buffer = TextToByte(_text);
             for(int i = 0; i < Clients.Count; i++){
                Server.Send(buffer, buffer.Length, Clients.ElementAt(i).IP);
             }
@@ -122,20 +112,21 @@ namespace NetworkUDP {
          }
 
          if(data.Length > 0){
-            Connection _connection = (Connection)ByteJsonToDatagram(data, new Connection().GetType());
-            if(_connection.PublicKeyXML == null){
-               object _data = ByteJsonToDatagram(_connection.Datagram, DataType, _connection.EncryptConnection);
-               OnReceivedNewDataClient?.Invoke(_data, _client);
+            string _text = ByteToText(data);
+            if(_text.StartsWith("<RSAKeyValue>") && _text.EndsWith("</RSAKeyValue>")){
+               _client.PublicKeyXML = _text;
             }else{
-               _client.PublicKeyXML = _connection.PublicKeyXML;
+               if(_client.PublicKeyXML == "")
+                  OnReceivedNewDataClient?.Invoke(_text, _client);
+               else
+                  OnReceivedNewDataClient?.Invoke(ByteToText(data, true), _client);
             }
-            Console.WriteLine(_connection.EncryptConnection);
+         }else{
+            if(_client.PublicKeyXML == "" && EncryptConnection){
+               SendEncryption(_client.IP);
+            }
          }
          
-         if(_client.PublicKeyXML == "" && EncryptConnection){
-            SendEncryption(_client.IP);
-         }
-
          try{
             Server.BeginReceive(new AsyncCallback(ServerReceiveUDPCallback), null);
          }catch{
@@ -144,11 +135,7 @@ namespace NetworkUDP {
       }
       static bool SendEncryption(IPEndPoint _ip){
          try{
-            Connection _connection = new Connection();
-            object _data = new object();
-            _connection.PublicKeyXML = PublicKeyXML;
-            _connection.EncryptConnection = false;
-            byte[] buffer = DatagramJsonToByte(_connection, _data);
+            byte[] buffer = TextToByte(PublicKeyXML);
             Server.Send(buffer, buffer.Length, _ip);
             return true;
          }catch{
@@ -172,26 +159,22 @@ namespace NetworkUDP {
             Thread.Sleep(1000);
          }
       }
-      static object ByteJsonToDatagram(byte[] _json, Type _type, bool _decrypt = false){
+      static string ByteToText(byte[] _byte, bool _decrypt = false){
          if(_decrypt){
             RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
             RSA.FromXmlString(PrivateKeyXML);
-            var utf8Reader = new Utf8JsonReader(RSA.Decrypt(_json, true));
-            return JsonSerializer.Deserialize(ref utf8Reader, _type);
+            return Encoding.UTF8.GetString(RSA.Decrypt(_byte, true));
          }else{
-            var utf8Reader = new Utf8JsonReader(_json);
-            return JsonSerializer.Deserialize(ref utf8Reader, _type);
+            return Encoding.UTF8.GetString(_byte);
          }
       }
-      static byte[] DatagramJsonToByte(Connection _config, object _data, bool _encrypt = false, string _keyClient = ""){
+      static byte[] TextToByte(string _text, bool _encrypt = false, string _keyClient = ""){
          if(_encrypt){
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(_keyClient);
-            _config.Datagram = rsa.Encrypt(JsonSerializer.SerializeToUtf8Bytes(_data), true);
-            return JsonSerializer.SerializeToUtf8Bytes(_config);
+            return rsa.Encrypt(Encoding.UTF8.GetBytes(_text), true);
          }else{
-            _config.Datagram = JsonSerializer.SerializeToUtf8Bytes(_data);
-            return JsonSerializer.SerializeToUtf8Bytes(_config);   
+            return Encoding.UTF8.GetBytes(_text);
          }
       }
    }
