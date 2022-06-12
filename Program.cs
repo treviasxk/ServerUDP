@@ -1,38 +1,67 @@
-﻿// Software desenvolvido por Trevias Xk
+// Software desenvolvido por Trevias Xk
 // Redes sociais:       treviasxk
 // Github:              https://github.com/treviasxk
 
 using NetworkUDP;
 using System.Net;
-using System.Text.Json;
-
- class dtg {
-    public string name { get; set; }
-    public string msg { get; set; }
-}
 
 class Program {
    static void Main(string[] args){
       if(ServerUDP.StartServer(IPAddress.Any.ToString(), 26950)){
          Console.WriteLine("[SERVER] Servidor iniciado e hospedado na porta: {0}", 26950);
-         ServerUDP.OnReceivedNewDataClient += new Eventos.OnReceivedNewDataClient(OnReceivedNewDataClient);
-         ServerUDP.OnConnectedClient += new Eventos.OnConnectedClient(OnConnectedClient);
-         ServerUDP.OnDisconnectedClient += new Eventos.OnDisconnectedClient(OnDisconnectedClient);
+         ServerUDP.OnConnectedClient += OnConnectedClient;
+         ServerUDP.OnDisconnectedClient += OnDisconnectedClient;
+         ServerUDP.OnReceivedNewDataClient += OnReceivedNewDataClient;
       }
    }
    //========================= Evento =========================
    static void OnReceivedNewDataClient(string _text, Client _client){
-      var data = JsonSerializer.Deserialize<dtg>(_text);
-      Console.WriteLine("{0}: {1}", data.name, data.msg);
-      data.name = "SERVER";
-      data.msg = "Olá :)";
-      Console.WriteLine("{0}: {1}", data.name, data.msg);
-      ServerUDP.SendData(JsonSerializer.Serialize(data), _client);
+      Console.WriteLine("[CLIENT] {0}", _text);
+      _text = "OLÁ";
+      Console.WriteLine("[SERVER] {0}", _text);
+      ServerUDP.SendText(_text, _client);
    }
    static void OnConnectedClient(Client _client){
-      Console.WriteLine("[SERVER] {0} conectou no servidor.", _client.IP);
+      Console.WriteLine("[CLIENT] {0} conectou no servidor.", _client.IP);
    }
    static void OnDisconnectedClient(Client _client){
-      Console.WriteLine("[SERVER] {0} desconectou do servidor.", _client.IP);
+      Console.WriteLine("[CLIENT] {0} desconectou do servidor.", _client.IP);
    }
 }
+
+/* Script Unity Example - Network.cs
+using UnityEngine;
+using NetworkUDP;
+
+public class Network : MonoBehaviour{
+    void Start(){
+      if(ServerUDP.StartServer(IPAddress.Any.ToString(), 26950)){
+         Debug.Log("<color=green>SERVER:</color>: Servidor iniciado e hospedado na porta: 26950");
+         ServerUDP.OnConnectedClient += OnConnectedClient;
+         ServerUDP.OnDisconnectedClient += OnDisconnectedClient;
+         ServerUDP.OnReceivedNewDataClient += OnReceivedNewDataClient;
+      }
+    }
+
+    void Update() {
+         ServerUDP.MainThread();
+    }
+
+//========================= Events =========================
+    void OnReceivedNewDataClient(string _text, Client _client){
+      Debug.Log("<color=green>MESSAGE:</color>: " + _text);
+      ServerUDP.SendText("OLÁ", _client);
+      ServerUDP.RunOnMainThread(() => {
+         gameObject.name = _text;
+      });
+    }
+
+    void OnConnectedClient(Client _client){
+        Debug.Log("<color=green>CLIENT:</color>: " + _client.IP + "conectou no servidor.");
+    }
+
+    void OnDisconnectedClient(Client _client){
+        Debug.Log("<color=green>CLIENT:</color>: " + _client.IP + "desconectou do servidor.");
+    }
+}
+*/
