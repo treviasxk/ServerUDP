@@ -14,7 +14,7 @@ class Program {
          ServerUDP.OnReceivedNewDataClient += OnReceivedNewDataClient;
       }
    }
-   //========================= Evento =========================
+   //========================= Events =========================
    static void OnReceivedNewDataClient(string _text, Client _client){
       Console.WriteLine("[CLIENT] {0}", _text);
       _text = "OLÁ";

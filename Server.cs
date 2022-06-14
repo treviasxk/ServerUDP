@@ -77,7 +77,7 @@ namespace NetworkUDP {
       /// <summary>
       ///  Envie a string para todos os Clients conectado no servidor.
       /// </summary>
-      public static bool SendDataAll(string _text){
+      public static bool SendTextAll(string _text){
          try{
             byte[] buffer = TextToByte(_text);
             for(int i = 0; i < Clients.Count; i++){

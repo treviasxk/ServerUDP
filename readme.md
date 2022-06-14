@@ -1,5 +1,5 @@
 # ServerUDP
-ServerUDP é um client criado em .NET Core com C#, é um projeto simples e de fácil entendimento, os dados são enviado e recebido por string entre o servidor e o client, para organizar os dados recomendo que serialize as class ou object para JSON ou XML, a conexão possui criptografia RSA de ambas conexão e é perfeito para criação de servidores de jogos como por exemplo a Unity 3D.
+ServerUDP é um server criado em .NET Core com C#, é um projeto simples e de fácil entendimento, os dados são enviado e recebido por string entre o servidor e o client, para organizar os dados recomendo que serialize as class ou object para JSON ou XML, a conexão possui criptografia RSA de ambas conexão e é perfeito para criação de servidores de jogos como por exemplo a Unity 3D.
 
  ![Preview](screenshots/ServerUDP.jpg)
  ![Preview](screenshots/ClientUDP.jpg)
